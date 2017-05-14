@@ -43,6 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChilisExpGenetics\ChilisExpGen.cs" />
+    <Compile Include="ChilisExpGenetics\ChilisExpGenetics.cs" />
+    <Compile Include="GeneticsAlgorithms\Gen.cs" />
+    <Compile Include="GeneticsAlgorithms\GeneticsAlgorithms.cs" />
+    <Compile Include="GeneticsAlgorithms\GenHistory.cs" />
+    <Compile Include="Manager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
