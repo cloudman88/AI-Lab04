@@ -21,10 +21,6 @@ namespace ChilisExp
             {
                 case 1:
                     break;
-                case 2:
-                    break;
-                case 3:
-                    break;
                 default:
                     Console.WriteLine("please enter a number between 1 to 3");
                     break;
