@@ -1,4 +1,4 @@
-﻿namespace KnapsackProblem.GeneticsAlgorithms
+﻿namespace ChilisExp.GeneticsAlgorithms
 {
     class GenHistory<T> where T : Gen
     {

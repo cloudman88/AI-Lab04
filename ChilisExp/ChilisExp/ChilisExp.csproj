@@ -43,8 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChilisExpGenetics\ChilisExpGen.cs" />
+    <Compile Include="ChilisExpGenetics\SortingNetGen.cs" />
     <Compile Include="ChilisExpGenetics\ChilisExpGenetics.cs" />
+    <Compile Include="ChilisExpGenetics\TestCaseGen.cs" />
     <Compile Include="GeneticsAlgorithms\Gen.cs" />
     <Compile Include="GeneticsAlgorithms\GeneticsAlgorithms.cs" />
     <Compile Include="GeneticsAlgorithms\GenHistory.cs" />

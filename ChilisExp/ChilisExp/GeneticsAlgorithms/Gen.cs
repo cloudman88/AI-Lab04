@@ -1,4 +1,4 @@
-﻿namespace KnapsackProblem.GeneticsAlgorithms
+﻿namespace ChilisExp.GeneticsAlgorithms
 {
     abstract class Gen //what used to be ga_struct in the given file
     {

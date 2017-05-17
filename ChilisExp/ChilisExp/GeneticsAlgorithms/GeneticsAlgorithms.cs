@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace KnapsackProblem.GeneticsAlgorithms
+namespace ChilisExp.GeneticsAlgorithms
 {
     public enum SelectionMethod  
     { 
