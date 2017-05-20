@@ -38,7 +38,7 @@ namespace ChilisExp.GeneticsAlgorithms
     {
         protected readonly Random Rand;
         protected const int GaMaxiter = 1000;		// maximum iterations 16384
-        protected const int GaPopSize = 2000;		// ga population size 2048
+        protected const int GaPopSize = 20;		// ga population size 2048
         protected const double GaElitRate = 0.1;	    // elitism rate
         protected const double GaMutationRate = 0.25;    // mutation rate
         protected const int MaxRand = Int32.MaxValue;    //Max value of random function in C#
@@ -186,7 +186,7 @@ namespace ChilisExp.GeneticsAlgorithms
         }
 
         protected abstract void calc_fitness();
-        protected void sort_by_fitness()
+        protected virtual void sort_by_fitness()
         {
             Population.Sort((s1, s2) => s1.Fitness.CompareTo(s2.Fitness));
         }
@@ -336,7 +336,7 @@ namespace ChilisExp.GeneticsAlgorithms
                 ", Standard Deviation: " + string.Format("{0:N2}", stdDev));
         }
         protected abstract Tuple<string, uint> get_best_gen_details(T gen);
-        protected void swap_population_with_buffer()
+        protected virtual void swap_population_with_buffer()
         {
             List<T> temp = Population;
             Population = Buffer;
