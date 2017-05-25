@@ -32,7 +32,9 @@ namespace ChilisExp.GeneticsAlgorithms
         Insertion,
         SimpleInversion,
         Inversion,
-        Scramble
+        Scramble,
+        IndirectReplacement,
+        PointMutation3Times,
     }
     abstract class GeneticsAlgorithms<T> where T : Gen
     {
@@ -246,7 +248,6 @@ namespace ChilisExp.GeneticsAlgorithms
                     case SelectionMethod.ThresholdSpeciation:
                         SelectionByThresholdSpeciation(esize);
                         break;
-                        //default: throw new Exception("Selection method: "+ selectMethod + " isnt supported for this problem");
                 }
             }
         }
