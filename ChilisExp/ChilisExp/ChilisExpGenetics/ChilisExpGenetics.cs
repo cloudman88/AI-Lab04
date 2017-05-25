@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,17 +14,18 @@ namespace ChilisExp.ChilisExpGenetics
         public List<TestCaseGen> TcBuffer;
         public int GaTcPopSize;
         public int VectorSize;
-        public int TargetNetworkDepth;
+        public int UppderBound;
+        //public int TargetNetworkSize;
 
-        public ChilisExpGenetics(CrossoverMethod crossMethod, SelectionMethod selectionMethod) : base(crossMethod, selectionMethod)
+        public ChilisExpGenetics(CrossoverMethod crossMethod, SelectionMethod selectionMethod,int k,int upperBound) : base(crossMethod, selectionMethod)
         {            
             Population = new List<SortingNetGen>();
             Buffer = new List<SortingNetGen>();
             TcPopulation = new List<TestCaseGen>();
             TcBuffer = new List<TestCaseGen>();
-            VectorSize = 6;
-            GaTcPopSize = 50;
-            TargetNetworkDepth = 8;
+            VectorSize = k;
+            GaTcPopSize = 500;
+            UppderBound = upperBound;
             LocalOptSearchEnabled = false;
         }
 
@@ -31,13 +33,13 @@ namespace ChilisExp.ChilisExpGenetics
         {
             for (int i = 0; i < GaPopSize; i++)
             {
-                Population.Add(new SortingNetGen(VectorSize));
-                Buffer.Add(new SortingNetGen(VectorSize));
+                Population.Add(new SortingNetGen(VectorSize, UppderBound, Rand));
+                Buffer.Add(new SortingNetGen(VectorSize, UppderBound, Rand));
             }
             for (int i = 0; i < GaTcPopSize; i++)
             {
-                TcPopulation.Add(new TestCaseGen(VectorSize));
-                TcBuffer.Add(new TestCaseGen(VectorSize));
+                TcPopulation.Add(new TestCaseGen(VectorSize, Rand));
+                TcBuffer.Add(new TestCaseGen(VectorSize, Rand));
             }
         }
 
@@ -190,47 +192,63 @@ namespace ChilisExp.ChilisExpGenetics
             }
         }
         public override void run_algorithm()
-        {
+        {               
             long totalTicks = 0;
             int totalIteration = -1;
-            Stopwatch stopWatch = new Stopwatch(); //stopwatch is used for both clock ticks and elasped time measuring
+            Stopwatch stopWatch = new Stopwatch();
+                //stopwatch is used for both clock ticks and elasped time measuring
             stopWatch.Start();
             for (int i = 0; i < GaMaxiter; i++)
             {
-                calc_fitness();      // calculate fitness
-                sort_by_fitness();   // sort them
+                calc_fitness(); // calculate fitness
+                sort_by_fitness(); // sort them
                 var avg = calc_avg(); // calc avg
                 var stdDev = calc_std_dev(avg); //calc std dev
 
                 //calculate time differences                
                 stopWatch.Stop();
-                double ticks = (stopWatch.ElapsedTicks / (double)Stopwatch.Frequency) * 1000;
-                totalTicks += (long)ticks;
+                double ticks = (stopWatch.ElapsedTicks/(double) Stopwatch.Frequency)*1000;
+                totalTicks += (long) ticks;
 
-                print_result_details(Population[0], avg, stdDev, i);  // print the best one, average and std dev by iteration number                
+                print_result_details(Population[0], avg, stdDev, i);
+                    // print the best one, average and std dev by iteration number                
                 if (LocalOptSearchEnabled == true) search_local_optima(avg, stdDev, i);
-
                 stopWatch.Restart(); // restart timers for next iteration
                 if ((Population)[0].Fitness == 0)
                 {
-                    Console.WriteLine("Network Depth: "+Population[0].Network.Count);
-                    if (Population[0].Network.Count != TargetNetworkDepth)
-                    {
-                        for (int j = 0; j < GaPopSize; j++)
-                        {
-                            Population[j].CutNetworkEdge();                           
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    Console.WriteLine("Network Depth: " + Population[0].Network.Count);
+                    Verify(Population[0]);
+                    //Console.WriteLine("Sorted vectors: " + Population[0].Network.Count);
+                    //foreach (var testCaseGen in TcPopulation)
+                    //{
+                    //    var vector = testCaseGen.Vector;
+                    //    var network = Population[0].Network;
+                    //    List<int> tempVec = new List<int>(vector);
+                    //    for (int k = 0; k < network.Count; k++)
+                    //    {
+                    //        var index1 = network[k].Item1;
+                    //        var index2 = network[k].Item2;
+                    //        if (tempVec[index1] > tempVec[index2])
+                    //        {
+                    //            Population[0].Swap(tempVec, index1, index2);
+                    //        }
+                    //    }
+                    //    string res = "";
+                    //    foreach (var item in tempVec)
+                    //    {
+                    //        res += item + " ";
+                    //    }
+                    //    Console.WriteLine(res);
+                    //}
                     //save number of iteration                                                           
                     totalIteration = i + 1;
+                    break;
                 }
-                Mate();     // mate the population together
+                Mate(); // mate the population together
                 MateParasite();
-                swap_population_with_buffer();       // swap buffers
+                Check();
+                swap_population_with_buffer(); // swap buffers
+                Check();
             }
             if (totalIteration == GaMaxiter)
             {
@@ -240,8 +258,69 @@ namespace ChilisExp.ChilisExpGenetics
             {
                 Console.WriteLine("Iterations: " + totalIteration);
             }
+            Console.WriteLine("Network Depth: " + Population[0].Network.Count);
+            Console.WriteLine("UpperBound: " + UppderBound);
             Console.WriteLine("\nTimig in milliseconds:");
-            Console.WriteLine("Total Ticks " + totalTicks);
+            Console.WriteLine("Total Ticks " + totalTicks);            
+        }
+
+        private void Verify(SortingNetGen sngen)
+        {
+            IEnumerable<IEnumerable<int>> result = GetPermutations(Enumerable.Range(1, VectorSize), VectorSize);
+                    Console.WriteLine("#permutation: "+ result.Count());
+
+            foreach (var permutation in result)
+            {
+                var dif = sngen.SortVectorByNetwrok(permutation.ToList(),true);
+                if (dif != 0)
+                {
+                    string res = "";
+                    foreach (var num in permutation.ToList())
+                    {
+                        res += num + " ";
+                    }
+                    Console.WriteLine("failed to sort:");
+                    Console.WriteLine(res);
+                }
+            }
+        }
+        static IEnumerable<IEnumerable<T>>GetPermutations<T>(IEnumerable < T > list, int length)
+        {
+            if (length == 1) return list.Select(t => new T[] { t });
+            return GetPermutations(list, length - 1)
+                .SelectMany(t => list.Where(e => !t.Contains(e)),
+                    (t1, t2) => t1.Concat(new T[] { t2 }));
+        }
+
+        private void Check()
+        {
+            var vec = TcPopulation.First().Vector;
+            bool x = true;
+            foreach (var testGen in TcPopulation)
+            {
+                for (int i = 0; i < vec.Count; i++)
+                {
+                    if (vec[i] != testGen.Vector[i])
+                    {
+                        x = false;
+                        break;
+                    };
+                }
+            }
+            if (x == true)
+            {
+                Console.WriteLine("same parsites");                
+            }
+            var net = Population.First().Network;
+            foreach (var sgen in Population)
+            {
+                for (int i = 0; i < vec.Count; i++)
+                {
+                    if (net[i].Item1 != sgen.Network[i].Item1) return;
+                    if (net[i].Item2 != sgen.Network[i].Item2) return;
+                }
+            }
+            Console.WriteLine("same hosts");
         }
     }
 }

@@ -27,13 +27,13 @@ namespace ChilisExp
       
         private void run_genetics_sol()
         {          
-            ChilisExpGenetics.ChilisExpGenetics ceg = new ChilisExpGenetics.ChilisExpGenetics(CrossoverMethod.Uniform,SelectionMethod.Truncation);
-            do
-            {
-                ceg.init_population();
-                ceg.run_algorithm();
-                Console.WriteLine("press any key to run again or escapse to exit");
-            } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+            //ChilisExpGenetics.ChilisExpGenetics ceg = new ChilisExpGenetics.ChilisExpGenetics(CrossoverMethod.Uniform,SelectionMethod.Truncation);
+            //do
+            //{
+            //    ceg.init_population();
+            //    ceg.run_algorithm();
+            //    Console.WriteLine("press any key to run again or escapse to exit");
+            //} while (Console.ReadKey(true).Key != ConsoleKey.Escape);
         }
 
 

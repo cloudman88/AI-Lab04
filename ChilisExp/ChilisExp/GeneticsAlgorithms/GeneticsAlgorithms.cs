@@ -38,7 +38,7 @@ namespace ChilisExp.GeneticsAlgorithms
     {
         protected readonly Random Rand;
         protected const int GaMaxiter = 1000;		// maximum iterations 16384
-        protected const int GaPopSize = 20;		// ga population size 2048
+        protected const int GaPopSize = 800;		// ga population size 2048
         protected const double GaElitRate = 0.1;	    // elitism rate
         protected const double GaMutationRate = 0.25;    // mutation rate
         protected const int MaxRand = Int32.MaxValue;    //Max value of random function in C#
