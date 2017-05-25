@@ -196,7 +196,6 @@ namespace ChilisExp.ChilisExpGenetics
             long totalTicks = 0;
             int totalIteration = -1;
             Stopwatch stopWatch = new Stopwatch();
-                //stopwatch is used for both clock ticks and elasped time measuring
             stopWatch.Start();
             for (int i = 0; i < GaMaxiter; i++)
             {
@@ -244,8 +243,8 @@ namespace ChilisExp.ChilisExpGenetics
                     totalIteration = i + 1;
                     break;
                 }
-                Mate(); // mate the population together
-                MateParasite();
+                Mate(); // mate the host population together
+                MateParasite(); // mate the parasite population together
                 Check();
                 swap_population_with_buffer(); // swap buffers
                 Check();
@@ -267,7 +266,7 @@ namespace ChilisExp.ChilisExpGenetics
         private void Verify(SortingNetGen sngen)
         {
             IEnumerable<IEnumerable<int>> result = GetPermutations(Enumerable.Range(1, VectorSize), VectorSize);
-                    Console.WriteLine("#permutation: "+ result.Count());
+            Console.WriteLine("#permutation: "+ result.Count());
 
             foreach (var permutation in result)
             {
