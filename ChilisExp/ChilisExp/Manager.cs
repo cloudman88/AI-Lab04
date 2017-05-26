@@ -22,9 +22,9 @@ namespace ChilisExp
             choose_mutations_operator();
             choose_k();
             choose_target_network_size();
-            ChilisExpGenetics.ChilisExpGenetics ceg = new ChilisExpGenetics.ChilisExpGenetics(_crossoverMethod,_selectionMethod,_mutationOperator,_k,_targetNetworkSize);
             do
             {
+                ChilisExpGenetics.ChilisExpGenetics ceg = new ChilisExpGenetics.ChilisExpGenetics(_crossoverMethod,_selectionMethod,_mutationOperator,_k,_targetNetworkSize);
                 ceg.init_population();
                 ceg.run_algorithm();
                 Console.WriteLine("press any key to run again or escapse to exit");
@@ -34,11 +34,7 @@ namespace ChilisExp
         private void choose_crossover_method()
         {
             Console.WriteLine("Please Choose CrossOver Method :");
-            var methodsList = Enum.GetValues(typeof(CrossoverMethod)).Cast<CrossoverMethod>().ToList();           
-            for (int i = 0; i < 3; i++)
-            {
-                methodsList.RemoveAt(0);
-            }          
+            var methodsList = Enum.GetValues(typeof(CrossoverMethod)).Cast<CrossoverMethod>().ToList();
             for (int i = 0; i < methodsList.Count; i++)
             {
                 Console.WriteLine((i + 1) + ". " + methodsList[i]);
@@ -65,13 +61,13 @@ namespace ChilisExp
                 input = get_input();
 
             } while (input <= 0 || input > mutationList.Count);
-            _mutationOperator = mutationList[input];
+            _mutationOperator = mutationList[input-1];
         }
         private void choose_selection_method()
         {
             Console.WriteLine("Please set if Selection method: ");
             var selectionList = Enum.GetValues(typeof(SelectionMethod)).Cast<SelectionMethod>().ToList();
-            for (int i = 0; i < selectionList.Count; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var index = i + 1;
                 Console.WriteLine(index + ". " + selectionList[i]);
@@ -82,7 +78,7 @@ namespace ChilisExp
                 input = get_input();
 
             } while (input <= 0 || input > selectionList.Count);
-            _selectionMethod = selectionList[input];
+            _selectionMethod = selectionList[input-1];
         }
 
         private void choose_k()

@@ -20,36 +20,36 @@ namespace ChilisExp.GeneticsAlgorithms
         TwoPoint,
         Uniform,
         // these are for Nqueens,bin packing problem only (ordered chromosomes)
-        Pmx, //Partially Matched
-        Ox,  //Ordered
-        Cx,  //Cycle 
-        Er   //Edge recombination
+        //Pmx, //Partially Matched
+        //Ox,  //Ordered
+        //Cx,  //Cycle 
+        //Er   //Edge recombination
     }
     enum MutationOperator
     {
-        Displacement,
         Exchange,
-        Insertion,
-        SimpleInversion,
-        Inversion,
-        Scramble,
         IndirectReplacement,
         PointMutation3Times,
+        //Displacement,
+        //Insertion,
+        //SimpleInversion,
+        //Inversion,
+        //Scramble,
     }
     abstract class GeneticsAlgorithms<T> where T : Gen
     {
         protected readonly Random Rand;
         protected const int GaMaxiter = 1000;		// maximum iterations 16384
-        protected const int GaPopSize = 800;		// ga population size 2048
-        protected const double GaElitRate = 0.1;	    // elitism rate
-        protected const double GaMutationRate = 0.25;    // mutation rate
+        protected const int GaPopSize = 1000;		// ga population size 2048
+        protected const double GaElitRate = 0.15;	    // elitism rate
+        protected const double GaMutationRate = 0.15;    // mutation rate
         protected const int MaxRand = Int32.MaxValue;    //Max value of random function in C#
         protected const double GaMutation = MaxRand * GaMutationRate;
         protected const uint AgeThreshold = 20;
         protected int BestGensHistoryTargetSize = 20;
         protected const int Beta = 12;
-        protected const int AvgMaxDif = 30;
-        protected const int StdDevMaxDif = 30;
+        protected const int AvgMaxDif = 50;
+        protected const int StdDevMaxDif = 50;
 
         protected double GaMutationFactor;
         protected int Alpha;

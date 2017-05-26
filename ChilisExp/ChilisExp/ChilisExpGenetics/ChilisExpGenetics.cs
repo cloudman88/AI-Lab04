@@ -30,13 +30,8 @@ namespace ChilisExp.ChilisExpGenetics
             UppderBound = upperBound;
             MutationOpt = mutationOperator;
             MaxFitnessParasite = Population.Count;
-            LocalOptSearchEnabled = false;
+            LocalOptSearchEnabled = true;
             InitBindaryVectors();
-        }
-
-        private void InitBindaryVectors()
-        {
-            BinaryVectors = Tools.ZeroOnePrincipal.CreateBinaryPermutations(VectorSize);            
         }
 
         public override void init_population()
@@ -51,6 +46,10 @@ namespace ChilisExp.ChilisExpGenetics
                 TcPopulation.Add(new TestCaseGen(VectorSize, Rand));
                 TcBuffer.Add(new TestCaseGen(VectorSize, Rand));
             }
+        }
+        private void InitBindaryVectors()
+        {
+            BinaryVectors = Tools.ZeroOnePrincipal.CreateBinaryPermutations(VectorSize);            
         }
 
         protected override void calc_fitness()
@@ -165,7 +164,13 @@ namespace ChilisExp.ChilisExpGenetics
 
         protected override int calc_distance(SortingNetGen gen1, SortingNetGen gen2)
         {
-            throw new NotImplementedException();
+            int dif = 0;
+            for (int i = 0; i < gen1.Network.Count; i++)
+            {
+                if (gen1.Network[i].Item1 != gen2.Network[i].Item1) dif++;
+                if (gen1.Network[i].Item2 != gen2.Network[i].Item2) dif++;
+            }
+            return dif;
         }
 
         protected override void sort_by_fitness()
@@ -186,6 +191,7 @@ namespace ChilisExp.ChilisExpGenetics
             TcBuffer = tempTc;
         }
 
+        #region ParasiteMethods
         private void elitism_parasite(int esize)
         {
             for (int i = 0; i < esize; i++)
@@ -196,72 +202,25 @@ namespace ChilisExp.ChilisExpGenetics
         private void MateParasite()
         {
             int esize = (int)(GaTcPopSize * GaElitRate);
-            if (SelectMethod == SelectionMethod.Aging)
+            elitism_parasite(esize);
+            //Mate the rest           
+            switch (SelectMethod)
             {
-                esize = elitism_with_aging_parasite(esize);
-                //Mate the rest
-                SelectionByAging(esize);
-            }
-            else
-            {
-                elitism_parasite(esize);
-                //Mate the rest           
-                switch (SelectMethod)
-                {
-                    case SelectionMethod.Truncation:
-                        SelectionByTruncationParasite(esize);
-                        break;
-                    case SelectionMethod.Tournament:
-                        SelectionByTournamentParasite(esize);
-                        break;
-                    case SelectionMethod.RwsSus:
-                        SelectionByRwsSusParasite(esize);
-                        break;
-                    case SelectionMethod.ThresholdSpeciation:
-                        SelectionByThresholdSpeciation(esize);
-                        break;
-                }
-            }
-
-            //int esize = (int)(GaTcPopSize * GaElitRate);
-            //elitism_parasite(esize);
-
-            //for (int i = esize; i < GaTcPopSize; i++)
-            //{
-            //    var i1 = Rand.Next() % (GaTcPopSize / 2);
-            //    var i2 = Rand.Next() % (GaTcPopSize / 2);
-
-            //    mate_by_method_parasite(TcBuffer[i], TcPopulation[i1], TcPopulation[i2]);
-               
-            //    //if (Rand.Next() < GaMutation * GaMutationFactor) Mutate(TcBuffer[i]);
-            //}
+                case SelectionMethod.Truncation:
+                    SelectionByTruncationParasite(esize);
+                    break;
+                case SelectionMethod.Tournament:
+                    SelectionByTournamentParasite(esize);
+                    break;
+            }            
         }
-        private void SelectionByRwsSusParasite(int esize)
-        {
-            uint totalFit = 0;
-            for (int i = 0; i < GaTcPopSize; i++)
-            {
-                totalFit += (MaxFitness - TcPopulation[i].Fitness);
-            }
-            List<int> rWheel = BuildRouletteWheelParasite(totalFit);
-            int n = (GaTcPopSize) * 2;
-            int p = (int)totalFit / n; // p is used to advance the index over the wheel
-            int index = Rand.Next() % p;  //starting index is randomly selected by the size of p            
-            for (int i = esize; i < GaTcPopSize; i++)  // loop over population and advance index by 2*p in every iteration
-            {
-                int i1 = rWheel[index];
-                int i2 = rWheel[index + p];
-                mate_by_method_parasite(TcBuffer[i], TcPopulation[i1], TcPopulation[i2]);
-                if (Rand.Next() < GaMutation * GaMutationFactor) MutateParsite(TcBuffer[i]);
-                index += 2 * p;
-            }
-        }
+    
         private void MutateParsite(TestCaseGen testCaseGen)
         {
             switch (MutationOpt)
             {
                 case MutationOperator.IndirectReplacement:
-                    IndirectReplacementParasite(Rand.Next() % UppderBound, testCaseGen);
+                    IndirectReplacementParasite(Rand.Next() % VectorSize, testCaseGen);
                     break;
                 case MutationOperator.Exchange:
                     int pos1 = Rand.Next() % VectorSize;
@@ -271,8 +230,8 @@ namespace ChilisExp.ChilisExpGenetics
                     testCaseGen.Vector[pos2] = temp;
                     break;
                 case MutationOperator.PointMutation3Times:
-                    int firstPos = Rand.Next() % UppderBound;
-                    for (int i = firstPos; i < firstPos + 3 && i < UppderBound; i++)
+                    int firstPos = Rand.Next() % VectorSize;
+                    for (int i = firstPos; i < firstPos + 3 && i < VectorSize; i++)
                     {
                         IndirectReplacementParasite(i, testCaseGen);
                     }
@@ -299,31 +258,7 @@ namespace ChilisExp.ChilisExpGenetics
                 }
             }
             return rWheel;
-        }
-        private int elitism_with_aging_parasite(int esize)
-        {
-            int bufCounter = 0;
-            int j = -1; //index used to iterate over the rest of population in case 1 gen of the esiz gens is over the threshold
-            for (int i = 0; i < esize; i++)
-            {
-                bool stop = false;
-                do
-                {
-                    j++;
-                    TcPopulation[j].Age++;
-                    if (TcPopulation[j].Age > AgeThreshold)
-                        TcPopulation[j] = get_new_gen_parasite();
-                    else stop = true;
-                } while (stop == false && j < GaTcPopSize);
-                TcBuffer[i] = TcPopulation[j];
-                bufCounter++;
-            }
-            return bufCounter;
-        }
-        private TestCaseGen get_new_gen_parasite()
-        {
-           return new TestCaseGen(VectorSize,Rand);
-        }
+        }            
         private void SelectionByTournamentParasite(int esize)
         {
             for (int i = esize; i < GaTcPopSize; i++)
@@ -341,7 +276,7 @@ namespace ChilisExp.ChilisExpGenetics
                 //mate the 2 best gens out of each pair
                 mate_by_method_parasite(TcBuffer[i], gen1, gen2);
 
-                if (Rand.Next() < GaMutation * GaMutationFactor) Mutate(Buffer[i]);
+                if (Rand.Next() < GaMutation * GaMutationFactor) MutateParsite(TcBuffer[i]);
             }
         }
         private void SelectionByTruncationParasite(int esize)
@@ -351,7 +286,7 @@ namespace ChilisExp.ChilisExpGenetics
                 var i1 = Rand.Next() % (GaTcPopSize / 2);
                 var i2 = Rand.Next() % (GaTcPopSize / 2);
                 mate_by_method_parasite(TcBuffer[i], TcPopulation[i1], TcPopulation[i2]);
-                if (Rand.Next() < GaMutation * GaMutationFactor) Mutate(Buffer[i]);
+                if (Rand.Next() < GaMutation * GaMutationFactor) MutateParsite(TcBuffer[i]);
             }
         }
         private  void mate_by_method_parasite(TestCaseGen bufGen, TestCaseGen gen1, TestCaseGen gen2)
@@ -382,7 +317,7 @@ namespace ChilisExp.ChilisExpGenetics
                     break;
             }
         }
-
+        #endregion
         public override void run_algorithm()
         {               
             long totalTicks = 0;
@@ -427,75 +362,6 @@ namespace ChilisExp.ChilisExpGenetics
             Console.WriteLine("\nTimig in milliseconds:");
             Console.WriteLine("Total Ticks " + totalTicks);            
         }
-
-        //private void Verify(SortingNetGen sngen)
-        //{
-        //    IEnumerable<IEnumerable<int>> result = GetPermutations(Enumerable.Range(1, VectorSize), VectorSize);
-        //    Console.WriteLine("#permutation: "+ result.Count());
-
-        //    int count = 0;
-        //    foreach (var permutation in result)
-        //    {
-        //        var dif = sngen.SortVectorByNetwrok(permutation.ToList(),true);
-        //        if (dif != 0)
-        //        {
-        //            count++;
-        //            string res = "";
-        //            foreach (var num in permutation.ToList())
-        //            {
-        //                res += num + " ";
-        //            }
-        //            Console.WriteLine("failed to sort: " + res);
-        //        }
-        //    }
-        //    Console.WriteLine("failed "+count+" times");
-        //    uint countBin = (uint)BinaryVectors.Count;
-        //    uint countSuccess = countBin;
-        //    foreach (var binVec in BinaryVectors)
-        //    {
-        //        uint res = Population[0].SortVectorByNetwrok(binVec);
-        //        if (res != 0) countSuccess--;
-        //    }            
-        //    Console.WriteLine("Successed "+countSuccess+"/"+countBin);
-        //}
-
-        //public static IEnumerable<IEnumerable<T>>GetPermutations<T>(IEnumerable < T > list, int length)
-        //{
-        //    if (length == 1) return list.Select(t => new T[] { t });
-        //    return GetPermutations(list, length - 1)
-        //        .SelectMany(t => list.Where(e => !t.Contains(e)),
-        //            (t1, t2) => t1.Concat(new T[] { t2 }));
-        //}
-
-        //private void Check()
-        //{
-        //    var vec = TcPopulation.First().Vector;
-        //    bool x = true;
-        //    foreach (var testGen in TcPopulation)
-        //    {
-        //        for (int i = 0; i < vec.Count; i++)
-        //        {
-        //            if (vec[i] != testGen.Vector[i])
-        //            {
-        //                x = false;
-        //                break;
-        //            };
-        //        }
-        //    }
-        //    if (x == true)
-        //    {
-        //        Console.WriteLine("same parsites");                
-        //    }
-        //    var net = Population.First().Network;
-        //    foreach (var sgen in Population)
-        //    {
-        //        for (int i = 0; i < vec.Count; i++)
-        //        {
-        //            if (net[i].Item1 != sgen.Network[i].Item1) return;
-        //            if (net[i].Item2 != sgen.Network[i].Item2) return;
-        //        }
-        //    }
-        //    Console.WriteLine("same hosts");
-        //}
+       
     }
 }
